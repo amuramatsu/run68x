@@ -329,9 +329,9 @@ static bool analyzeHimemOption(const char *arg) {
   const size_t sizes_len = sizeof(sizes) / sizeof(sizes[0]);
 
   const char *p = strchr(arg, '=');
-  char *endptr;
+  char *endptr = NULL;
   unsigned long mb = p ? strtoul(p + 1, &endptr, 10) : 0;
-  if (*endptr) mb = 0;
+  if (endptr == NULL || *endptr) mb = 0;
 
   for (size_t i = 0; i < sizes_len; ++i) {
     if (sizes[i] == mb) {

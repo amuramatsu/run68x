@@ -74,7 +74,7 @@ if(MSVC)
   # PathAddBackslashA()
   target_link_libraries(${PROJECT_NAME} PRIVATE shlwapi)
 else()
-  target_compile_options(${PROJECT_NAME} PRIVATE -funsigned-char -O3 -Wall -Wextra -Werror -Wno-unused-parameter)
+  target_compile_options(${PROJECT_NAME} PRIVATE -funsigned-char -O3 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-function)
 
   # linef.c uses math functions.
   target_link_libraries(${PROJECT_NAME} PRIVATE m)
