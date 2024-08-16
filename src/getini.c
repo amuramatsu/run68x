@@ -61,6 +61,10 @@ void read_ini(char *path) {
   }
   /* ディレクトリ名とファイル名を結合する。*/
   snprintf(path, MAX_PATH, "%s%s", dir, buf);
+  if (getenv("RUN68_INI")) {
+    strncpy(path, getenv("RUN68_INI"), MAX_PATH);
+    path[MAX_PATH-1] = '\0';
+  }
 #ifdef PRINT_RUN68INI_PATH
   printf("INI:%s\n", path);
 #endif
@@ -91,17 +95,10 @@ void read_ini(char *path) {
 void readenv_from_ini(char *path, ULong envbuf) {
   char buf[1024];
   FILE *fp;
-  int len;
   int env_len = 0; /* 環境の長さ */
   const size_t envSize = ReadULongSuper(envbuf);
 
-  /* INIファイルの名前(パス含む)を得る */
-  strcpy(buf, path);
-  if ((len = strlen(buf)) < 4) return;
-  buf[len - 3] = 'i';
-  buf[len - 2] = 'n';
-  buf[len - 1] = 'i';
-  if ((fp = fopen(buf, "r")) == NULL) return;
+  if ((fp = fopen(path, "r")) == NULL) return;
 
   /* 内容を調べる */
   bool env_flag = false;  // ファイル先頭は [all] セクション
