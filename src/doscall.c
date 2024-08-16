@@ -91,12 +91,51 @@ static Long Exec3(ULong, Long, Long);
 static void Exec4(Long);
 
 #ifndef _WIN32
+#define isatty_f(f)    isatty(fileno(f))
 void CloseHandle(FILE *fp) { fclose(fp); }
 
-int _dos_getfileattr(char *name, void *ret) {
-  printf("_dos_getfileattr(\"%s\")\n", name);
+static char *to_slash(size_t size, char *buf, const char *path);
+static void trimRight(char *s);
+static char *_fix_dospath(const char *filename) {
+  size_t bufSize = strlen(filename) + 1;
+  char *buf = malloc(bufSize);
+  if (!buf) return NULL;
+  char *p = to_slash(bufSize, buf, filename);
+  if (!p) {
+    free(buf);
+    return NULL;
+  }
+  trimRight(p);
 
-  return 1;
+  Human68kPathName hpn;
+  if (!HOST_CANONICAL_PATHNAME(p, &hpn)) {
+    free(buf);
+    return NULL;
+  }
+  free(buf);
+
+  // ホスト上のファイルをオープンするためのパス名を作る。
+  static char fullpath[HUMAN68K_PATH_MAX + 1];
+  char fullpath2[HUMAN68K_PATH_MAX + 1];
+  strcat(strcpy(fullpath, hpn.path), hpn.name);
+  p = to_slash(sizeof(fullpath2), fullpath2, fullpath);
+  if (!p) return NULL;
+  if (!HOST_CONVERT_FROM_SJIS(p, fullpath, sizeof(fullpath)))
+    return NULL;
+  return fullpath;
+}
+
+int _dos_getfileattr(char *name, void *ret) {
+  struct stat st;
+  ULong *r = ret;
+  name = _fix_dospath(name);
+  if (name == NULL || stat(name, &st) < 0)
+    return 1;
+  if (st.st_mode & S_IWUSR)
+    *r = 0;
+  else
+    *r = 0x01;
+  return 0;
 }
 
 int _dos_setfileattr(char *name, short attr) {
